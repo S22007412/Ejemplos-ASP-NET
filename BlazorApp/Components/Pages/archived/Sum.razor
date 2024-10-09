@@ -1,0 +1,26 @@
+﻿@page "/sum"
+<h3>Sumador</h3>
+
+<p>Hola mundo</p>
+
+<p>Number 1: </p>
+<input type="number" @bind="num1" />
+
+<p>Number 2: </p>
+<input type="number" @bind="num2" />
+
+<button @onclick="SumNumbers">Sum</button>
+
+<p>Result: @num3</p>
+
+@code {
+    private int num1 = 0;
+    private int num2 = 0;
+    private int num3 = 0;
+
+    private void SumNumbers()
+    {
+        num3 = num1 + num2;
+        StateHasChanged();
+    }
+}
