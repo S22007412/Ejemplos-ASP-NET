@@ -1,4 +1,7 @@
 using BlazorApp.Components;
+using BlazorApp.Server.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Antiforgery;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,20 +9,55 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Add controller support
+builder.Services.AddControllers();
+
+// Configure HttpClient with a base address
+builder.Services.AddHttpClient("ServerAPI", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServerAPI:BaseAddress"] ?? "https://localhost:44358/");
+});
+
+// Database connection
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection")));
+});
+
+
+// Add logging
+builder.Services.AddLogging();
+
+// Add Antiforgery services
+builder.Services.AddAntiforgery();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+}
+else
+{
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
+
+// Add UseRouting before UseAntiforgery
+app.UseRouting();
+
+// Add UseAntiforgery after UseRouting and before UseEndpoints
 app.UseAntiforgery();
+
+// Add UseAuthorization if you're using authentication
+// app.UseAuthorization();
+
+app.MapControllers();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

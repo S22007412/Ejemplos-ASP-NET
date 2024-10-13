@@ -1,0 +1,68 @@
+﻿@page "/register"
+@using BlazorApp.Models
+@inject IHttpClientFactory HttpClientFactory
+@inject ILogger<Registro> Logger
+@rendermode InteractiveServer
+
+<PageTitle>Registro</PageTitle>
+
+<h1>Registro</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+
+<EditForm Model="newUser" OnValidSubmit="CreateUser">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="username">Username:</label>
+        <InputText id="username" @bind-Value="newUser.username" />
+        <ValidationMessage For="@(() => newUser.username)" />
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <InputText id="password" @bind-Value="newUser.password" type="password" />
+        <ValidationMessage For="@(() => newUser.password)" />
+    </div>
+    <div>
+        <label for="email">Email:</label>
+        <InputText id="email" @bind-Value="newUser.email" type="email" />
+        <ValidationMessage For="@(() => newUser.email)" />
+    </div>
+    <button type="submit">Crear usuario</button>
+</EditForm>
+
+@code {
+    private Users newUser = new Users();
+    private string errorMessage = string.Empty;
+
+    private async Task CreateUser()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("ServerAPI");
+            var result = await client.PostAsJsonAsync("api/User", newUser);
+            if (result.IsSuccessStatusCode)
+            {
+                // Handle successful registration
+                Logger.LogInformation("User registered successfully");
+            }
+            else
+            {
+                var errorContent = await result.Content.ReadAsStringAsync();
+                errorMessage = $"Error: {result.StatusCode} - {errorContent}";
+                Logger.LogError("Registration failed: {ErrorMessage}", errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+            Logger.LogError(ex, "An error occurred during registration");
+        }
+    }
+}
