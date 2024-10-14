@@ -2,6 +2,7 @@ using BlazorApp.Components;
 using BlazorApp.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,14 @@ builder.Services.AddControllers();
 builder.Services.AddHttpClient("ServerAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ServerAPI:BaseAddress"] ?? "https://localhost:44358/");
+
 });
+// Add a separate HttpClient for external API requests (like OpenWeatherMap)
+builder.Services.AddHttpClient("WeatherAPI", client =>
+{
+    client.BaseAddress = new Uri("https://api.openweathermap.org/"); // Base URL for the API
+});
+
 
 // Database connection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

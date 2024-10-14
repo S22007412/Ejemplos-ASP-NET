@@ -1,0 +1,78 @@
+﻿@page "/weatherapi"
+@rendermode InteractiveServer
+
+
+<h3>Weather Forecast</h3>
+
+<div>
+    <label>Enter City: </label>
+    <input type="text" @bind="City" />
+</div>
+
+<div>
+    <button @onclick="GetWeather">Get Weather</button>
+</div>
+
+@if (WeatherInfo != null)
+{
+    <p><strong>Temperature:</strong> @WeatherInfo.Main.Temp °C</p>
+    <p><strong>Humidity:</strong> @WeatherInfo.Main.Humidity %</p>
+    <p><strong>Conditions:</strong> @WeatherInfo.Weather[0].Description</p>
+}
+else if (ErrorMessage != null)
+{
+    <p style="color:red">@ErrorMessage</p>
+}
+
+@code {
+    private string City { get; set; }
+    private WeatherData? WeatherInfo { get; set; }
+    private string? ErrorMessage { get; set; }
+
+    [Inject] public IHttpClientFactory HttpClientFactory { get; set; } = default!;
+
+    private async Task GetWeather()
+    {
+        try
+        {
+            ErrorMessage = null;
+            WeatherInfo = await FetchWeatherData(City);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Could not retrieve weather data. Please try again.";
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task<WeatherData> FetchWeatherData(string city)
+    {
+        var client = HttpClientFactory.CreateClient("WeatherAPI");  // Use the injected client
+        string apiKey = "YOUR_API_KEY";  // Replace with your actual API key
+        string url = $"data/2.5/weather?q={city}&appid={apiKey}&units=metric";
+
+        var response = await client.GetFromJsonAsync<WeatherData>(url);
+
+        if (response == null)
+            throw new Exception("No data received");
+
+        return response;
+    }
+
+    public class WeatherData
+    {
+        public MainData Main { get; set; }
+        public List<WeatherCondition> Weather { get; set; }
+    }
+
+    public class MainData
+    {
+        public float Temp { get; set; }
+        public int Humidity { get; set; }
+    }
+
+    public class WeatherCondition
+    {
+        public string Description { get; set; }
+    }
+}
