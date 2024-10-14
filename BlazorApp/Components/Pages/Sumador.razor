@@ -1,29 +1,38 @@
 ﻿@page "/sumador"
+@rendermode InteractiveServer
 
-<PageTitle>Sumador</PageTitle>
+<PageTitle>Contador</PageTitle>
 
-<h1>Sumador</h1>
+<h3>Sumador</h3>
 
-<p>Ingresa los números a sumar, y has click en el botón Sumar</p>
+<div>
+    <label>Primer Número: </label>
+    <input type="number" @bind="FirstNumber" />
+</div>
 
-<p>Number 1: </p>
-<input type="number" @bind="num1" />
+<div>
+    <label>Segundo Número: </label>
+    <input type="number" @bind="SecondNumber" />
+</div>
 
-<p>Number 2: </p>
-<input type="number" @bind="num2" />
+<div>
+    <button @onclick="CalculateSum">Sumar</button>
+</div>
 
-<button @onclick="SumNumbers">Sumar</button>
-
-<p>Result: @num3</p>
+@if (Sum.HasValue)
+{
+    <p>Resultado: @Sum</p>
+}
 
 @code {
-    private int num1 = 0;
-    private int num2 = 0;
-    private int num3 = 0;
+    private int FirstNumber { get; set; } = 0;  // Initialize to avoid null issues
+    private int SecondNumber { get; set; } = 0;
+    private int? Sum { get; set; } = null;
 
-    private void SumNumbers()
+    private void CalculateSum()
     {
-        num3 = num1 + num2;
-        StateHasChanged();
+        // Ensure the button action works
+        Console.WriteLine("Button clicked!");
+        Sum = FirstNumber + SecondNumber;
     }
 }
