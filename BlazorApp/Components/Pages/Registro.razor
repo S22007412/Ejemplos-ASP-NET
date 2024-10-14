@@ -15,22 +15,29 @@
     </div>
 }
 
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">
+        @successMessage
+    </div>
+}
+
 <EditForm Model="newUser" OnValidSubmit="CreateUser">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div>
-        <label for="username">Username:</label>
+        <label for="username">Nombre de usuario:</label>
         <InputText id="username" @bind-Value="newUser.username" />
         <ValidationMessage For="@(() => newUser.username)" />
     </div>
     <div>
-        <label for="password">Password:</label>
+        <label for="password">Contraseña:</label>
         <InputText id="password" @bind-Value="newUser.password" type="password" />
         <ValidationMessage For="@(() => newUser.password)" />
     </div>
     <div>
-        <label for="email">Email:</label>
+        <label for="email">Correo electrónico:</label>
         <InputText id="email" @bind-Value="newUser.email" type="email" />
         <ValidationMessage For="@(() => newUser.email)" />
     </div>
@@ -40,6 +47,7 @@
 @code {
     private Users newUser = new Users();
     private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
 
     private async Task CreateUser()
     {
@@ -49,19 +57,23 @@
             var result = await client.PostAsJsonAsync("api/User", newUser);
             if (result.IsSuccessStatusCode)
             {
-                // Handle successful registration
+                // Clear any previous error message and show success message
+                errorMessage = string.Empty;
+                successMessage = "User registered successfully!";
                 Logger.LogInformation("User registered successfully");
             }
             else
             {
                 var errorContent = await result.Content.ReadAsStringAsync();
                 errorMessage = $"Error: {result.StatusCode} - {errorContent}";
+                successMessage = string.Empty;
                 Logger.LogError("Registration failed: {ErrorMessage}", errorMessage);
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"An error occurred: {ex.Message}";
+            successMessage = string.Empty;
             Logger.LogError(ex, "An error occurred during registration");
         }
     }
